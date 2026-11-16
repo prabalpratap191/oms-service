@@ -1,0 +1,2 @@
+package com.oms.domain;
+public enum RmaStatus { REQUESTED, APPROVED, PICKUP_SCHEDULED, QC_INSPECTION, REFUNDED, EXCHANGED, REJECTED }

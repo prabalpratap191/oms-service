@@ -1,0 +1,37 @@
+# ClusterIP only: OMS is an internal service. Reach it locally with: kubectl -n oms port-forward svc/oms-service 9999:9999
+apiVersion: v1
+kind: Service
+metadata: { name: oms-service, namespace: oms }
+spec:
+  type: ClusterIP
+  selector: { app: oms-service }
+  ports: [{ name: http, port: 9999, targetPort: 9999 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: oms-service, namespace: oms }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: oms-service } }
+  template:
+    metadata:
+      labels: { app: oms-service }
+      annotations: { prometheus.io/scrape: "true", prometheus.io/path: /actuator/prometheus, prometheus.io/port: "8080" }
+    spec:
+      terminationGracePeriodSeconds: 40
+      initContainers:
+        - name: wait-deps
+          image: busybox:1.36
+          command: ["sh", "-c", "for h in postgres:5432 redis:6379 kafka:9092; do until nc -z ${h%:*} ${h#*:}; do echo waiting $h; sleep 2; done; done"]
+      containers:
+        - name: oms-service
+          image: oms-service:1.0.0
+          imagePullPolicy: IfNotPresent     # image built locally; Docker Desktop's cluster shares the local image store
+          ports: [{ containerPort: 9999 }]
+          env:
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: oms-db, key: DB_PASSWORD } }
+          startupProbe: { httpGet: { path: /actuator/health/liveness, port: 9999 }, failureThreshold: 30, periodSeconds: 5 }
+          livenessProbe: { httpGet: { path: /actuator/health/liveness, port: 9999 }, periodSeconds: 10 }
+          readinessProbe: { httpGet: { path: /actuator/health/readiness, port: 9999 }, periodSeconds: 5 }
+          resources: { requests: { cpu: 250m, memory: 512Mi }, limits: { memory: 1Gi } }

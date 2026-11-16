@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%X{requestId:-N/A}] [%X{httpMethod:-N/A}] [%X{path:-N/A}] [%X{tenantId:-N/A}] [%X{actorType:-N/A}] [%X{actorId:-N/A}] %c{1} - %m%n"/>
+
+    <property name="LOG_PATH" value="logs"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="KAFKA_PRODUCER_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/kafka-producer.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/kafka-producer.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="KAFKA_CONSUMER_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/kafka-consumer.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/kafka-consumer.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="com.oms.kafka" level="INFO" additivity="false">
+        <appender-ref ref="KAFKA_PRODUCER_FILE"/>
+    </logger>
+
+    <logger name="com.oms.kafka.consumer" level="INFO" additivity="false">
+        <appender-ref ref="KAFKA_CONSUMER_FILE"/>
+    </logger>
+
+    <logger name="org.springframework.kafka" level="INFO" additivity="false">
+        <appender-ref ref="KAFKA_PRODUCER_FILE"/>
+        <appender-ref ref="KAFKA_CONSUMER_FILE"/>
+    </logger>
+
+    <logger name="org.apache.kafka" level="INFO" additivity="false">
+        <appender-ref ref="KAFKA_PRODUCER_FILE"/>
+        <appender-ref ref="KAFKA_CONSUMER_FILE"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

@@ -1,0 +1,16 @@
+package com.oms.domain;
+public enum ShipmentStatus {
+    CREATED,
+    PLANNED,
+    READY_TO_PICK,
+    PICK_IN_PROGRESS,
+    PICK_COMPLETED,
+    PACK_IN_PROGRESS,
+    PACKED,
+    READY_TO_SHIP,
+    DISPATCH_REQUESTED,
+    DISPATCHED,
+    PARTIALLY_DELIVERED,
+    DELIVERED,
+    CANCELLED
+}
